@@ -12,9 +12,10 @@ DEFAULT_VIDEO_SECONDS = 9
 def add_alpha_channel(image, alpha=255):
     for i in range(image.width):
         for j in range(image.height):
-            channels = cv.Get2D(image, j, i)
+            channels = list(cv.Get2D(image, j, i))
             channels[3] = alpha
             cv.Set2D(image, j, i, channels)
+    return image
 
 
 class FrameFilter(object):
