@@ -2,6 +2,8 @@
 from __future__ import absolute_import, unicode_literals
 import copy
 import cv
+import cv2
+import numpy
 
 
 DEFAULT_FPS = 20
@@ -16,6 +18,10 @@ def add_alpha_channel(image, alpha=255):
             channels[3] = alpha
             cv.Set2D(image, j, i, channels)
     return image
+
+
+def iplimage_to_cv2(iplimage):
+    return numpy.asarray(iplimage[:])
 
 
 class FrameFilter(object):
@@ -125,12 +131,12 @@ class ImageToVideo(object):
         self.frame_count = fps * seconds
         self.images = []
 
-        self.video_writer = cv.CreateVideoWriter(
+        self.video_writer = cv2.VideoWriter(
             filename=filename,
             fourcc=fourcc,
             fps=fps,
-            frame_size=frame_size,
-            is_color=is_color
+            frameSize=frame_size,
+            isColor=is_color
         )
 
     def add_image(self, image, filter_class=None):
@@ -144,8 +150,14 @@ class ImageToVideo(object):
         for item in iter(self.images):
             filename = item[0]
             filter_class = item[1]
-            image = cv.LoadImage(filename)
+            image = cv2.imread(filename, -1)
             frames = filter_class(image, frames_per_image).apply()
             for frame in frames:
-                cv.WriteFrame(self.video_writer, frame)
-        del self.video_writer  # save
+                self.video_writer.write(frame)
+        self.video_writer.release()
+
+
+if __name__ == '__main__':
+    converter = ImageToVideo('test.avi')
+    converter.add_image('1.jpg')
+    converter.generate()
