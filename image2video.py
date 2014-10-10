@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-import copy
 import cv
 import cv2
 import numpy
@@ -12,16 +11,16 @@ DEFAULT_VIDEO_SECONDS = 9
 
 
 def add_alpha_channel(image, alpha=255):
-    for i in range(image.width):
-        for j in range(image.height):
-            channels = list(cv.Get2D(image, j, i))
-            channels[3] = alpha
-            cv.Set2D(image, j, i, channels)
-    return image
-
-
-def iplimage_to_cv2(iplimage):
-    return numpy.asarray(iplimage[:])
+    width = image.shape[0]
+    height = image.shape[1]
+    tmp_image = []
+    for i in range(width):
+        for j in range(height):
+            tmp = numpy.append(image[i][j], alpha)
+            tmp_image.append(tmp)
+    img = numpy.array(tmp_image)
+    img.resize((width, height, 4))
+    return img
 
 
 class FrameFilter(object):
@@ -127,7 +126,7 @@ class ImageToVideo(object):
     def __init__(self, filename, fourcc=None, fps=DEFAULT_FPS,
                  frame_size=DEFAULT_FRAME_SIZE, is_color=1,
                  seconds=DEFAULT_VIDEO_SECONDS):
-        fourcc = fourcc or cv.CV_FOURCC(b'X', b'V', b'I', b'D')
+        fourcc = fourcc or cv.CV_FOURCC(b'F', b'M', b'P', b'4')
         self.frame_count = fps * seconds
         self.images = []
 
@@ -150,7 +149,7 @@ class ImageToVideo(object):
         for item in iter(self.images):
             filename = item[0]
             filter_class = item[1]
-            image = cv2.imread(filename, -1)
+            image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_UNCHANGED)
             frames = filter_class(image, frames_per_image).apply()
             for frame in frames:
                 self.video_writer.write(frame)
