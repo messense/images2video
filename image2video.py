@@ -379,6 +379,33 @@ class RotationEffect(FrameEffect):
             frame_count /= 2
         width = self.frame_size[0]
         height = self.frame_size[1]
+        percentage = 100.0 / frame_count
+        angle_per_frame = 360.0 / frame_count
+
+        for i in range(frame_count):
+            scale = (percentage * (i + 1)) / 100.0
+            angle = i * angle_per_frame
+            matrix = cv2.getRotationMatrix2D(
+                (width / 2, height / 2),
+                angle,
+                scale
+            )
+            frame = cv2.warpAffine(self.image, matrix, (width, height))
+            self.frames.append(frame)
+
+        frame_left = self.frame_count - frame_count
+        for i in range(frame_left):
+            scale = (percentage * (frame_left - i)) / 100.0
+            angle = - i * angle_per_frame
+            matrix = cv2.getRotationMatrix2D(
+                (width / 2, height / 2),
+                angle,
+                scale
+            )
+            frame = cv2.warpAffine(self.image, matrix, (width, height))
+            self.frames.append(frame)
+
+        return self.frames
 
 
 class ImageToVideo(object):
@@ -425,7 +452,7 @@ class ImageToVideo(object):
 
 if __name__ == '__main__':
     converter = ImageToVideo('test.avi', fps=40)
-    converter.add_image('1.jpg', ResizeEffect, bounce=True)
+    converter.add_image('1.jpg', RotationEffect, bounce=True)
     converter.add_image('1.jpg', CropEffect, bounce=True)
     converter.add_image('1.jpg', RightTopToLeftBottomEffect, bounce=True)
     converter.add_image('1.jpg', RightBottomToLeftTopEffect, bounce=True)
