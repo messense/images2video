@@ -5,7 +5,7 @@ import cv2
 import numpy
 
 
-DEFAULT_FPS = 20
+DEFAULT_FPS = 60
 DEFAULT_FRAME_SIZE = (400, 400)
 DEFAULT_VIDEO_SECONDS = 9
 
@@ -25,9 +25,10 @@ def add_alpha_channel(image, alpha=255):
 
 class FrameFilter(object):
 
-    def __init__(self, image, frame_count):
+    def __init__(self, image, frame_count, frame_size):
         self.image = image
         self.frame_count = frame_count
+        self.frame_size = frame_size
         self.frames = []
 
     def apply(self):
@@ -64,49 +65,129 @@ class FadeInOutFilter(FrameFilter):
 class LeftToRightFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        delta = float(width) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, delta * i - width],
+                [0, 1, 0]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class RightToLeftFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        delta = float(width) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, width - delta * i],
+                [0, 1, 0]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class TopToBottomFilter(FrameFilter):
 
     def apply(self):
-        pass
+        height = self.frame_size[1]
+        delta = float(height) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, 0],
+                [0, 1, delta * i - height]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class BottomToTopFilter(FrameFilter):
 
     def apply(self):
-        pass
+        height = self.frame_size[1]
+        delta = float(height) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, 0],
+                [0, 1, height - delta * i]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class LeftTopToRightBottomFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        delta_x = float(width) / self.frame_count
+        delta_y = float(height) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, delta_x * i - width],
+                [0, 1, delta_y * i - height]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class LeftBottomToRightTopFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        delta_x = float(width) / self.frame_count
+        delta_y = float(height) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, delta_x * i - width],
+                [0, 1, height - delta_y * i]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class RightTopToLeftBottomFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        delta_x = float(width) / self.frame_count
+        delta_y = float(height) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, width - delta_x * i],
+                [0, 1, delta_y * i - height]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class RightBottomToLeftTopFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        delta_x = float(width) / self.frame_count
+        delta_y = float(height) / self.frame_count
+        for i in range(self.frame_count):
+            matrix = numpy.float32([
+                [1, 0, width - delta_x * i],
+                [0, 1, height - delta_y * i]
+            ])
+            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            self.frames.append(frame)
+        return self.frames
 
 
 class ResizeFilter(FrameFilter):
@@ -128,6 +209,7 @@ class ImageToVideo(object):
                  seconds=DEFAULT_VIDEO_SECONDS):
         fourcc = fourcc or cv.CV_FOURCC(b'F', b'M', b'P', b'4')
         self.frame_count = fps * seconds
+        self.frame_size = frame_size
         self.images = []
 
         self.video_writer = cv2.VideoWriter(
@@ -150,7 +232,11 @@ class ImageToVideo(object):
             filename = item[0]
             filter_class = item[1]
             image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_UNCHANGED)
-            frames = filter_class(image, frames_per_image).apply()
+            frames = filter_class(
+                image,
+                frames_per_image,
+                self.frame_size
+            ).apply()
             for frame in frames:
                 self.video_writer.write(frame)
         self.video_writer.release()
@@ -158,5 +244,8 @@ class ImageToVideo(object):
 
 if __name__ == '__main__':
     converter = ImageToVideo('test.avi')
-    converter.add_image('1.jpg')
+    converter.add_image('1.jpg', LeftTopToRightBottomFilter)
+    converter.add_image('1.jpg', LeftBottomToRightTopFilter)
+    converter.add_image('1.jpg', RightTopToLeftBottomFilter)
+    converter.add_image('1.jpg', RightBottomToLeftTopFilter)
     converter.generate()
