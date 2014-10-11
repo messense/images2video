@@ -3,6 +3,29 @@ images2video
 
 Python images to video library using OpenCV
 
+## Installation
+
+```bash
+pip install images2video
+# or
+pip install https://github.com/messense/images2video/archive/master.zip
+```
+
+Note that you also need to install OpenCV and numpy to make it work.
+
+## Usage
+
+```python
+from images2video import ImagesToVideo
+from images2video.effects import *  # NOQA
+
+video = ImagesToVideo('test.avi', seconds=10)
+video.add_image('1.jpg', ResizeEffect)
+video.add_image('2.jpg', CropEffect, bounce=True)
+video.add_image('3.jpg', RotationEffect, bounce=True)
+video.generate()
+```
+
 ## License
 
 The MIT License (MIT)
