@@ -9,7 +9,7 @@ DEFAULT_FRAME_SIZE = (400, 400)
 DEFAULT_VIDEO_SECONDS = 9
 
 
-class FrameFilter(object):
+class FrameEffect(object):
 
     def __init__(self, image, frame_count, frame_size, bounce=False, **kwargs):
         self.image = image
@@ -24,7 +24,7 @@ class FrameFilter(object):
         raise NotImplementedError()
 
 
-class OriginalFilter(FrameFilter):
+class OriginalEffect(FrameEffect):
 
     def apply(self):
         for i in range(self.frame_count):
@@ -32,25 +32,25 @@ class OriginalFilter(FrameFilter):
         return self.frames
 
 
-class FadeInFilter(FrameFilter):
+class FadeInEffect(FrameEffect):
 
     def apply(self):
         pass
 
 
-class FadeOutFilter(FrameFilter):
+class FadeOutEffect(FrameEffect):
 
     def apply(self):
         pass
 
 
-class FadeInOutFilter(FrameFilter):
+class FadeInOutEffect(FrameEffect):
 
     def apply(self):
         pass
 
 
-class LeftToRightFilter(FrameFilter):
+class LeftToRightEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -78,7 +78,7 @@ class LeftToRightFilter(FrameFilter):
         return self.frames
 
 
-class RightToLeftFilter(FrameFilter):
+class RightToLeftEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -106,7 +106,7 @@ class RightToLeftFilter(FrameFilter):
         return self.frames
 
 
-class TopToBottomFilter(FrameFilter):
+class TopToBottomEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -134,7 +134,7 @@ class TopToBottomFilter(FrameFilter):
         return self.frames
 
 
-class BottomToTopFilter(FrameFilter):
+class BottomToTopEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -162,7 +162,7 @@ class BottomToTopFilter(FrameFilter):
         return self.frames
 
 
-class LeftTopToRightBottomFilter(FrameFilter):
+class LeftTopToRightBottomEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -192,7 +192,7 @@ class LeftTopToRightBottomFilter(FrameFilter):
         return self.frames
 
 
-class LeftBottomToRightTopFilter(FrameFilter):
+class LeftBottomToRightTopEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -222,7 +222,7 @@ class LeftBottomToRightTopFilter(FrameFilter):
         return self.frames
 
 
-class RightTopToLeftBottomFilter(FrameFilter):
+class RightTopToLeftBottomEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -252,7 +252,7 @@ class RightTopToLeftBottomFilter(FrameFilter):
         return self.frames
 
 
-class RightBottomToLeftTopFilter(FrameFilter):
+class RightBottomToLeftTopEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -282,7 +282,7 @@ class RightBottomToLeftTopFilter(FrameFilter):
         return self.frames
 
 
-class ResizeFilter(FrameFilter):
+class ResizeEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -330,7 +330,7 @@ class ResizeFilter(FrameFilter):
         return self.frames
 
 
-class CropFilter(FrameFilter):
+class CropEffect(FrameEffect):
 
     def apply(self):
         frame_count = self.frame_count
@@ -371,6 +371,16 @@ class CropFilter(FrameFilter):
         return self.frames
 
 
+class RotationEffect(FrameEffect):
+
+    def apply(self):
+        frame_count = self.frame_count
+        if self.bounce:
+            frame_count /= 2
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+
+
 class ImageToVideo(object):
 
     def __init__(self, filename, fourcc=None, fps=DEFAULT_FPS,
@@ -389,9 +399,9 @@ class ImageToVideo(object):
             isColor=is_color
         )
 
-    def add_image(self, image, filter_class=None, **kwargs):
-        filter_class = filter_class or OriginalFilter
-        self.images.append((image, filter_class, kwargs))
+    def add_image(self, image, effect_class=None, **kwargs):
+        effect_class = effect_class or OriginalEffect
+        self.images.append((image, effect_class, kwargs))
 
     def generate(self):
         image_count = len(self.images)
@@ -399,10 +409,10 @@ class ImageToVideo(object):
 
         for item in iter(self.images):
             filename = item[0]
-            filter_class = item[1]
+            effect_class = item[1]
             options = item[2]
             image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_UNCHANGED)
-            frames = filter_class(
+            frames = effect_class(
                 image,
                 frames_per_image,
                 self.frame_size,
@@ -415,8 +425,8 @@ class ImageToVideo(object):
 
 if __name__ == '__main__':
     converter = ImageToVideo('test.avi', fps=40)
-    converter.add_image('1.jpg', ResizeFilter, bounce=True)
-    converter.add_image('1.jpg', CropFilter, bounce=True)
-    converter.add_image('1.jpg', RightTopToLeftBottomFilter, bounce=True)
-    converter.add_image('1.jpg', RightBottomToLeftTopFilter, bounce=True)
+    converter.add_image('1.jpg', ResizeEffect, bounce=True)
+    converter.add_image('1.jpg', CropEffect, bounce=True)
+    converter.add_image('1.jpg', RightTopToLeftBottomEffect, bounce=True)
+    converter.add_image('1.jpg', RightBottomToLeftTopEffect, bounce=True)
     converter.generate()
