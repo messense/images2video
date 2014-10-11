@@ -5,7 +5,7 @@ import cv2
 import numpy
 
 
-DEFAULT_FPS = 60
+DEFAULT_FPS = 20
 DEFAULT_FRAME_SIZE = (400, 400)
 DEFAULT_VIDEO_SECONDS = 9
 
@@ -193,13 +193,42 @@ class RightBottomToLeftTopFilter(FrameFilter):
 class ResizeFilter(FrameFilter):
 
     def apply(self):
-        pass
+        # FIXME: Resize incorrect
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        percentage = 100.0 / self.frame_count
+        for i in range(self.frame_count):
+            fx = fy = (percentage * (i + 1)) / 100.0
+            frame = cv2.resize(
+                self.image,
+                (0, 0),
+                fx=fx,
+                fy=fy
+            )
+            self.frames.append(frame)
+        return self.frames
 
 
 class CropFilter(FrameFilter):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        rate_x = width / self.frame_count
+        rate_y = height / self.frame_count
+        for i in range(self.frame_count):
+            crop_width = rate_x * (i + 1)
+            crop_height = rate_y * (i + 1)
+            x = (width - crop_width) / 2
+            y = (height - crop_height) / 2
+            img = self.image.copy()
+            black_px = numpy.uint8([0, 0, 0])
+            img[0:x, 0:height] = black_px
+            img[x+crop_width+1:width, 0:height] = black_px
+            img[x:x+crop_width+1, 0:y] = black_px
+            img[x:x+crop_width+1, y+crop_height+1:height] = black_px
+            self.frames.append(img)
+        return self.frames
 
 
 class ImageToVideo(object):
@@ -244,8 +273,8 @@ class ImageToVideo(object):
 
 if __name__ == '__main__':
     converter = ImageToVideo('test.avi')
-    converter.add_image('1.jpg', LeftTopToRightBottomFilter)
-    converter.add_image('1.jpg', LeftBottomToRightTopFilter)
-    converter.add_image('1.jpg', RightTopToLeftBottomFilter)
-    converter.add_image('1.jpg', RightBottomToLeftTopFilter)
+    converter.add_image('1.jpg', CropFilter)
+    # converter.add_image('1.jpg', LeftBottomToRightTopFilter)
+    # converter.add_image('1.jpg', RightTopToLeftBottomFilter)
+    # converter.add_image('1.jpg', RightBottomToLeftTopFilter)
     converter.generate()
