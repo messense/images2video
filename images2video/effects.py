@@ -42,7 +42,18 @@ class OriginalEffect(FrameEffect):
 class FadeInEffect(FrameEffect):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        alpha_per_frame = 1.0 / self.frame_count
+        img = self.image.copy()
+        img[0:width, 0:height] = numpy.uint8([255, 255, 255])
+
+        for i in range(self.frame_count):
+            alpha = alpha_per_frame * i
+            beta = 1.0 - alpha
+            frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
+            self.frames.append(frame)
+        return self.frames
 
 
 class FadeOutEffect(FrameEffect):
