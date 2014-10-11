@@ -9,19 +9,6 @@ DEFAULT_FRAME_SIZE = (400, 400)
 DEFAULT_VIDEO_SECONDS = 9
 
 
-def add_alpha_channel(image, alpha=255):
-    width = image.shape[0]
-    height = image.shape[1]
-    tmp_image = []
-    for i in range(width):
-        for j in range(height):
-            tmp = numpy.append(image[i][j], alpha)
-            tmp_image.append(tmp)
-    img = numpy.array(tmp_image)
-    img.resize((width, height, 4))
-    return img
-
-
 class FrameFilter(object):
 
     def __init__(self, image, frame_count, frame_size):
@@ -197,14 +184,21 @@ class ResizeFilter(FrameFilter):
         height = self.frame_size[1]
         percentage = 100.0 / self.frame_count
         for i in range(self.frame_count):
+            img = self.image.copy()
+            img[0:width, 0:height] = numpy.uint8([0, 0, 0])
             fx = fy = (percentage * (i + 1)) / 100.0
-            frame = cv2.resize(
+            small = cv2.resize(
                 self.image,
                 (0, 0),
                 fx=fx,
                 fy=fy
             )
-            self.frames.append(frame)
+            small_width = small.shape[0]
+            small_height = small.shape[1]
+            x = (width - small_width) / 2
+            y = (height - small_height) / 2
+            img[x:x+small_width, y:y+small_height] = small
+            self.frames.append(img)
         return self.frames
 
 
@@ -272,7 +266,7 @@ class ImageToVideo(object):
 
 if __name__ == '__main__':
     converter = ImageToVideo('test.avi')
-    converter.add_image('1.jpg', CropFilter)
+    converter.add_image('1.jpg', ResizeFilter)
     # converter.add_image('1.jpg', LeftBottomToRightTopFilter)
     # converter.add_image('1.jpg', RightTopToLeftBottomFilter)
     # converter.add_image('1.jpg', RightBottomToLeftTopFilter)
