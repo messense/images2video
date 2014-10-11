@@ -468,3 +468,35 @@ class RotationEffect(FrameEffect):
             self.frames.append(frame)
 
         return self.frames
+
+
+@register_effect('blur')
+class BlurEffect(FrameEffect):
+
+    def apply(self):
+        frame_count = self.frame_count
+        if self.bounce:
+            frame_count /= 2
+        radius = self.options.get('radius', 5)
+        radius_per_frame = float(radius) / frame_count
+
+        for i in range(frame_count):
+            blur_radius = int(radius - radius_per_frame * i)
+            if blur_radius > 0:
+                kernel = (blur_radius, blur_radius)
+                frame = cv2.blur(self.image, kernel)
+            else:
+                frame = self.image.copy()
+            self.frames.append(frame)
+
+        frame_left = self.frame_count - frame_count
+        radius_per_frame = float(radius) / frame_left
+        for i in range(frame_left):
+            blur_radius = int(radius_per_frame * i)
+            if blur_radius > 0:
+                kernel = (blur_radius, blur_radius)
+                frame = cv2.blur(self.image, kernel)
+            else:
+                frame = self.image.copy()
+            self.frames.append(frame)
+        return self.frames
