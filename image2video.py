@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-import cv
 import cv2
 import numpy
 
@@ -236,7 +235,7 @@ class ImageToVideo(object):
     def __init__(self, filename, fourcc=None, fps=DEFAULT_FPS,
                  frame_size=DEFAULT_FRAME_SIZE, is_color=1,
                  seconds=DEFAULT_VIDEO_SECONDS):
-        fourcc = fourcc or cv.CV_FOURCC(b'F', b'M', b'P', b'4')
+        fourcc = fourcc or cv2.cv.CV_FOURCC(b'F', b'M', b'P', b'4')
         self.frame_count = fps * seconds
         self.frame_size = frame_size
         self.images = []
