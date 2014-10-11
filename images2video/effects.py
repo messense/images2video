@@ -76,7 +76,29 @@ class FadeOutEffect(FrameEffect):
 class FadeInOutEffect(FrameEffect):
 
     def apply(self):
-        pass
+        width = self.frame_size[0]
+        height = self.frame_size[1]
+        img = self.image.copy()
+        img[0:width, 0:height] = numpy.uint8([255, 255, 255])
+
+        frame_count = self.frame_count / 2
+        alpha_per_frame = 1.0 / frame_count
+
+        for i in range(frame_count):
+            alpha = alpha_per_frame * i
+            beta = 1.0 - alpha
+            frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
+            self.frames.append(frame)
+
+        frame_left = self.frame_count - frame_count
+        beta_per_frame = 1.0 / frame_left
+        for i in range(frame_left):
+            beta = beta_per_frame * i
+            alpha = 1.0 - beta
+            frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
+            self.frames.append(frame)
+
+        return self.frames
 
 
 @register_effect('left2right')
