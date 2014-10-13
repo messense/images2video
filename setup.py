@@ -11,7 +11,7 @@ with open(readme) as f:
 
 setup(
     name='images2video',
-    version='0.1',
+    version='0.2',
     author='messense',
     author_email='messense@icloud.com',
     url='https://github.com/messense/images2video',
