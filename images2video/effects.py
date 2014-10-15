@@ -39,6 +39,7 @@ class OriginalEffect(FrameEffect):
         return self.frames
 
 
+@register_effect('fadein')
 class FadeInEffect(FrameEffect):
 
     def apply(self):
@@ -56,6 +57,7 @@ class FadeInEffect(FrameEffect):
         return self.frames
 
 
+@register_effect('fadeout')
 class FadeOutEffect(FrameEffect):
 
     def apply(self):
@@ -73,6 +75,7 @@ class FadeOutEffect(FrameEffect):
         return self.frames
 
 
+@register_effect('fadeinout')
 class FadeInOutEffect(FrameEffect):
 
     def apply(self):
