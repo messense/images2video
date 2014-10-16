@@ -181,19 +181,24 @@ class TopToBottomEffect(FrameEffect):
             frame_count /= 2
         height = self.frame_size[1]
         delta = float(height) / frame_count
+        start = self.options.get('start', 0)
 
         for i in range(frame_count):
-            matrix = numpy.float32([
-                [1, 0, 0],
-                [0, 1, delta * i - height]
-            ])
-            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            position = start + delta * i - height
+            if position < 0:
+                matrix = numpy.float32([
+                    [1, 0, 0],
+                    [0, 1, position]
+                ])
+                frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            else:
+                frame = self.image.copy()
             self.frames.append(frame)
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
                 [1, 0, 0],
-                [0, 1, height - delta * i]
+                [0, 1, - delta * i]
             ])
             frame = cv2.warpAffine(self.image, matrix, self.frame_size)
             self.frames.append(frame)
