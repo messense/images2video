@@ -163,7 +163,7 @@ class RightToLeftEffect(FrameEffect):
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
-                [1, 0, delta * i - width],
+                [1, 0, delta * i],
                 [0, 1, 0]
             ])
             frame = cv2.warpAffine(self.image, matrix, self.frame_size)
