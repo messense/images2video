@@ -413,25 +413,26 @@ class ResizeEffect(FrameEffect):
             small_height = small.shape[1]
             x = (width - small_width) / 2
             y = (height - small_height) / 2
-            img[x:x+small_width, y:y+small_height] = small
+            img[x:x + small_width, y:y + small_height] = small
             self.frames.append(img)
 
         frame_left = self.frame_count - frame_count
         for i in range(frame_left):
             img = self.image.copy()
-            img[0:width, 0:height] = numpy.uint8([0, 0, 0])
             fx = fy = (percentage * (frame_left - i)) / 100.0
-            small = cv2.resize(
-                self.image,
-                (0, 0),
-                fx=fx,
-                fy=fy
-            )
-            small_width = small.shape[0]
-            small_height = small.shape[1]
-            x = (width - small_width) / 2
-            y = (height - small_height) / 2
-            img[x:x+small_width, y:y+small_height] = small
+            if fx < 1:
+                img[0:width, 0:height] = numpy.uint8([0, 0, 0])
+                small = cv2.resize(
+                    self.image,
+                    (0, 0),
+                    fx=fx,
+                    fy=fy
+                )
+                small_width = small.shape[0]
+                small_height = small.shape[1]
+                x = (width - small_width) / 2
+                y = (height - small_height) / 2
+                img[x:x + small_width, y:y + small_height] = small
             self.frames.append(img)
 
         return self.frames
