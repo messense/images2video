@@ -491,9 +491,9 @@ class CropEffect(FrameEffect):
             img = self.image.copy()
             black_px = numpy.uint8([0, 0, 0])
             img[0:x, 0:height] = black_px
-            img[x+crop_width+1:width, 0:height] = black_px
-            img[x:x+crop_width+1, 0:y] = black_px
-            img[x:x+crop_width+1, y+crop_height+1:height] = black_px
+            img[x + crop_width + 1:width, 0:height] = black_px
+            img[x:x + crop_width + 1, 0:y] = black_px
+            img[x:x + crop_width + 1, y + crop_height + 1:height] = black_px
             self.frames.append(img)
 
         self._apply_static_frames()
@@ -507,9 +507,9 @@ class CropEffect(FrameEffect):
             img = self.image.copy()
             black_px = numpy.uint8([0, 0, 0])
             img[0:x, 0:height] = black_px
-            img[x+crop_width+1:width, 0:height] = black_px
-            img[x:x+crop_width+1, 0:y] = black_px
-            img[x:x+crop_width+1, y+crop_height+1:height] = black_px
+            img[x + crop_width + 1:width, 0:height] = black_px
+            img[x:x + crop_width + 1, 0:y] = black_px
+            img[x:x + crop_width + 1, y + crop_height + 1:height] = black_px
             self.frames.append(img)
 
         return self.frames
