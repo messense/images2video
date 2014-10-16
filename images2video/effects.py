@@ -362,19 +362,25 @@ class RightBottomToLeftTopEffect(FrameEffect):
         height = self.frame_size[1]
         delta_x = float(width) / frame_count
         delta_y = float(height) / frame_count
+        start = self.options.get('start', 0)
 
         for i in range(frame_count):
-            matrix = numpy.float32([
-                [1, 0, width - delta_x * i],
-                [0, 1, height - delta_y * i]
-            ])
-            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            position_x = width - delta_x * i - start
+            position_y = height - delta_y * i - start
+            if position_x > 0 and position_y > 0:
+                matrix = numpy.float32([
+                    [1, 0, position_x],
+                    [0, 1, position_y]
+                ])
+                frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            else:
+                frame = self.image.copy()
             self.frames.append(frame)
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
-                [1, 0, delta_x * i - width],
-                [0, 1, delta_y * i - height]
+                [1, 0, delta_x * i],
+                [0, 1, delta_y * i]
             ])
             frame = cv2.warpAffine(self.image, matrix, self.frame_size)
             self.frames.append(frame)
