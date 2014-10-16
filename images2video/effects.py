@@ -6,6 +6,8 @@ import numpy
 
 EFFECTS = {}
 
+DEFAULT_STATIC_FRAMES = 20
+
 
 def register_effect(name):
 
@@ -19,15 +21,22 @@ class FrameEffect(object):
 
     def __init__(self, image, frame_count, frame_size, bounce=False, **kwargs):
         self.image = image
-        self.frame_count = frame_count
         self.frame_size = frame_size
         self.bounce = bounce
         self.options = kwargs or {}
         self.frames = []
+        self.static_frames = kwargs.get('static_frames', DEFAULT_STATIC_FRAMES)
+        self.frame_count = frame_count - self.static_frames
 
     def apply(self):
         """Apply filter, return frames"""
         raise NotImplementedError()
+
+    def _apply_static_frames(self):
+        if self.static_frames <= 0:
+            return
+        for i in range(self.static_frames):
+            self.frames.append(self.image.copy())
 
 
 @register_effect('original')
@@ -54,6 +63,8 @@ class FadeInEffect(FrameEffect):
             beta = 1.0 - alpha
             frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
             self.frames.append(frame)
+
+        self._apply_static_frames()
         return self.frames
 
 
@@ -72,6 +83,8 @@ class FadeOutEffect(FrameEffect):
             alpha = 1.0 - beta
             frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
             self.frames.append(frame)
+
+        self._apply_static_frames()
         return self.frames
 
 
@@ -92,6 +105,8 @@ class FadeInOutEffect(FrameEffect):
             beta = 1.0 - alpha
             frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
             self.frames.append(frame)
+
+        self._apply_static_frames()
 
         frame_left = self.frame_count - frame_count
         beta_per_frame = 0.3 / frame_left
@@ -127,6 +142,8 @@ class LeftToRightEffect(FrameEffect):
                 frame = self.image.copy()
             self.frames.append(frame)
 
+        self._apply_static_frames()
+
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
                 [1, 0, - delta * i],
@@ -160,6 +177,8 @@ class RightToLeftEffect(FrameEffect):
             else:
                 frame = self.image.copy()
             self.frames.append(frame)
+
+        self._apply_static_frames()
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
@@ -195,6 +214,8 @@ class TopToBottomEffect(FrameEffect):
                 frame = self.image.copy()
             self.frames.append(frame)
 
+        self._apply_static_frames()
+
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
                 [1, 0, 0],
@@ -228,6 +249,8 @@ class BottomToTopEffect(FrameEffect):
             else:
                 frame = self.image.copy()
             self.frames.append(frame)
+
+        self._apply_static_frames()
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
@@ -266,6 +289,8 @@ class LeftTopToRightBottomEffect(FrameEffect):
                 frame = self.image.copy()
             self.frames.append(frame)
 
+        self._apply_static_frames()
+
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
                 [1, 0, - delta_x * i],
@@ -302,6 +327,8 @@ class LeftBottomToRightTopEffect(FrameEffect):
             else:
                 frame = self.image.copy()
             self.frames.append(frame)
+
+        self._apply_static_frames()
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
@@ -340,6 +367,8 @@ class RightTopToLeftBottomEffect(FrameEffect):
                 frame = self.image.copy()
             self.frames.append(frame)
 
+        self._apply_static_frames()
+
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
                 [1, 0, delta_x * i],
@@ -376,6 +405,8 @@ class RightBottomToLeftTopEffect(FrameEffect):
             else:
                 frame = self.image.copy()
             self.frames.append(frame)
+
+        self._apply_static_frames()
 
         for i in range(self.frame_count - frame_count):
             matrix = numpy.float32([
@@ -415,6 +446,8 @@ class ResizeEffect(FrameEffect):
             y = (height - small_height) / 2
             img[x:x + small_width, y:y + small_height] = small
             self.frames.append(img)
+
+        self._apply_static_frames()
 
         frame_left = self.frame_count - frame_count
         for i in range(frame_left):
@@ -463,6 +496,8 @@ class CropEffect(FrameEffect):
             img[x:x+crop_width+1, y+crop_height+1:height] = black_px
             self.frames.append(img)
 
+        self._apply_static_frames()
+
         frame_left = self.frame_count - frame_count
         for i in range(frame_left):
             crop_width = rate_x * (frame_left - i - 1)
@@ -502,6 +537,8 @@ class RotationEffect(FrameEffect):
             )
             frame = cv2.warpAffine(self.image, matrix, (width, height))
             self.frames.append(frame)
+
+        self._apply_static_frames()
 
         frame_left = self.frame_count - frame_count
         for i in range(frame_left):
