@@ -113,13 +113,18 @@ class LeftToRightEffect(FrameEffect):
             frame_count /= 2
         width = self.frame_size[0]
         delta = float(width) / frame_count
+        start = self.options.get('start', 0)
 
         for i in range(frame_count):
-            matrix = numpy.float32([
-                [1, 0, delta * i - width],
-                [0, 1, 0]
-            ])
-            frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            position = start + delta * i - width
+            if position < 0:
+                matrix = numpy.float32([
+                    [1, 0, position],
+                    [0, 1, 0]
+                ])
+                frame = cv2.warpAffine(self.image, matrix, self.frame_size)
+            else:
+                frame = self.image.copy()
             self.frames.append(frame)
 
         for i in range(self.frame_count - frame_count):
