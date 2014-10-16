@@ -553,3 +553,42 @@ class RotationEffect(FrameEffect):
             self.frames.append(frame)
 
         return self.frames
+
+
+@register_effect('blur')
+class BlurEffect(FrameEffect):
+
+    def apply(self):
+        from PIL import Image, ImageFilter
+
+        frame_count = self.frame_count
+        if self.bounce:
+            frame_count /= 2
+        radius = self.options.get('radius', 5)
+        radius_per_frame = float(radius) / frame_count
+
+        for i in range(frame_count):
+            blur_radius = int(radius - radius_per_frame * i)
+            if blur_radius > 0:
+                img = Image.fromarray(self.image)
+                img = img.filter(ImageFilter.GaussianBlur(blur_radius))
+                frame = numpy.array(img, dtype=numpy.uint8)
+            else:
+                frame = self.image.copy()
+            self.frames.append(frame)
+
+        self._apply_static_frames()
+
+        frame_left = self.frame_count - frame_count
+        radius_per_frame = float(radius) / frame_left
+        for i in range(frame_left):
+            blur_radius = int(radius_per_frame * i)
+            if blur_radius > 0:
+                img = Image.fromarray(self.image)
+                img = img.filter(ImageFilter.GaussianBlur(blur_radius))
+                frame = numpy.array(img, dtype=numpy.uint8)
+            else:
+                frame = self.image.copy()
+            self.frames.append(frame)
+
+        return self.frames
