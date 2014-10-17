@@ -109,12 +109,13 @@ class FadeInOutEffect(FrameEffect):
         self._apply_static_frames()
 
         frame_left = self.frame_count - frame_count
-        beta_per_frame = 0.3 / frame_left
-        for i in range(frame_left):
-            beta = beta_per_frame * i + 0.3
-            alpha = 1.0 - beta
-            frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
-            self.frames.append(frame)
+        if frame_left > 0:
+            beta_per_frame = 0.3 / frame_left
+            for i in range(frame_left):
+                beta = beta_per_frame * i + 0.3
+                alpha = 1.0 - beta
+                frame = cv2.addWeighted(self.image, alpha, img, beta, 0)
+                self.frames.append(frame)
 
         return self.frames
 
@@ -580,15 +581,16 @@ class BlurEffect(FrameEffect):
         self._apply_static_frames()
 
         frame_left = self.frame_count - frame_count
-        radius_per_frame = float(radius) / frame_left
-        for i in range(frame_left):
-            blur_radius = int(radius_per_frame * i)
-            if blur_radius > 0:
-                img = Image.fromarray(self.image)
-                img = img.filter(ImageFilter.GaussianBlur(blur_radius))
-                frame = numpy.array(img, dtype=numpy.uint8)
-            else:
-                frame = self.image.copy()
-            self.frames.append(frame)
+        if frame_left > 0:
+            radius_per_frame = float(radius) / frame_left
+            for i in range(frame_left):
+                blur_radius = int(radius_per_frame * i)
+                if blur_radius > 0:
+                    img = Image.fromarray(self.image)
+                    img = img.filter(ImageFilter.GaussianBlur(blur_radius))
+                    frame = numpy.array(img, dtype=numpy.uint8)
+                else:
+                    frame = self.image.copy()
+                self.frames.append(frame)
 
         return self.frames
