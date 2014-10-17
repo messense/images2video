@@ -15,7 +15,14 @@ class ImagesToVideo(object):
     def __init__(self, filename, fourcc=None, fps=DEFAULT_FPS,
                  frame_size=DEFAULT_FRAME_SIZE, is_color=1,
                  seconds=DEFAULT_VIDEO_SECONDS):
-        fourcc = fourcc or cv2.cv.CV_FOURCC(b'F', b'M', b'P', b'4')
+        if hasattr(cv2, 'VideoWriter_fourcc'):
+            default_fourcc = cv2.VideoWriter_fourcc(b'F', b'M', b'P', b'4')
+        elif hasattr(cv2, 'cv'):
+            default_fourcc = cv2.cv.CV_FOURCC(b'F', b'M', b'P', b'4')
+        else:
+            default_fourcc = None
+
+        fourcc = fourcc or default_fourcc
         self.frame_count = fps * seconds
         self.frame_size = frame_size
         self.images = []
@@ -49,4 +56,6 @@ class ImagesToVideo(object):
             ).apply()
             for frame in frames:
                 self.video_writer.write(frame)
-        self.video_writer.release()
+
+        if hasattr(self.video_writer, 'release'):
+            self.video_writer.release()
